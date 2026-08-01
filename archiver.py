@@ -75,6 +75,8 @@ PDF_SCALE = 0.9
 # gets hidden (display: none) right before printing.
 HIDE_SELECTORS = [
     "#navigation",
+    "#contest-info",
+    "footer"
 ]
 
 # --- Table of contents layout settings ---
@@ -94,19 +96,6 @@ def sanitize_filename(name: str) -> str:
     """Make a string safe to use as a file/folder name."""
     name = re.sub(r'[\\/:*?"<>|]', "", name)
     return name.strip()
-
-
-def extract_number_letter(problem_text: str):
-    """
-    Given a problem row's text like 'Lab 1a - Full Names', extract the
-    trailing number+letter code, e.g. ('1', 'a'). Returns (None, None) if
-    no match is found. Used only to determine problem ORDER (a, b, c, ...).
-    """
-    match = re.search(r'(\d+)\s*([a-zA-Z])\s*[–\-‐‑—]', problem_text)
-    if match:
-        return match.group(1), match.group(2).lower()
-    return None, None
-
 
 def extract_display_name(problem_text: str) -> str:
     """
@@ -358,7 +347,7 @@ def scrape_problem_list(driver):
     # exercise_title = re.sub(r'^\[.*?\]\s*', '', page_title).strip()
     exercise_title = page_title
 
-    links = driver.find_elements("css selector", "a")
+    links = driver.find_elements("css selector", "td.problem a")
 
     problems = []
     seen_urls = set()
@@ -367,16 +356,11 @@ def scrape_problem_list(driver):
         href = link.get_attribute("href")
         if not text or not href:
             continue
-        num, letter = extract_number_letter(text)
-        if num is None:
-            continue
         if href in seen_urls:
             continue
         seen_urls.add(href)
-        problems.append((letter, href, text))
-
-    problems.sort(key=lambda p: p[0])
-
+        problems.append((href, text))
+ 
     return exercise_title, problems
 
 
@@ -420,7 +404,7 @@ def main():
 
     ordered_problems = []  # (display_name, filepath-or-bytes), in a/b/c order
 
-    for letter, url, raw_title in problems:
+    for url, raw_title in problems:
         display_name = extract_display_name(raw_title)
 
         print(f"  - {display_name}")
