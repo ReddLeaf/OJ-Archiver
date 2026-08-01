@@ -7,7 +7,7 @@ This uses Selenium!
 ## To Run
 ```bash
 uv sync
-.venv/Scripts/activate.ps1 # or source bin/.venv/activate
+.venv/Scripts/activate.ps1 # or source .venv/bin/activate
 py archiver.py
 ```
 
