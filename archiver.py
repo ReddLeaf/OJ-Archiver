@@ -39,6 +39,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from pypdf import PdfReader, PdfWriter
 from pypdf.annotations import Link
+from pypdf.generic import ArrayObject, NameObject
 from reportlab.lib.pagesizes import letter as LETTER_PAGESIZE
 from reportlab.pdfgen import canvas as reportlab_canvas
 
@@ -96,6 +97,7 @@ def sanitize_filename(name: str) -> str:
     """Make a string safe to use as a file/folder name."""
     name = re.sub(r'[\\/:*?"<>|]', "", name)
     return name.strip()
+
 
 def extract_display_name(problem_text: str) -> str:
     """
@@ -298,12 +300,20 @@ def merge_with_toc(ordered_problems, exercise_title, output_path):
 
     # Attach a clickable link annotation over each TOC row, pointing to the
     # corresponding problem's first page in the merged document.
+    #
+    # NOTE: pypdf's Link(target_page_index=...) writes the destination as a
+    # bare page NUMBER, which most desktop viewers tolerate but which isn't
+    # spec-conformant (an internal /Dest must reference the actual page
+    # object). We work around it by overwriting /Dest with a proper
+    # IndirectObject reference to the real page, once it's known post-merge.
     for toc_page_index, rect, target_page_num in link_boxes:
-        link = Link(
-            rect=rect,
-            target_page_index=target_page_num - 1,  # pypdf pages are 0-indexed
-        )
-        writer.add_annotation(page_number=toc_page_index, annotation=link)
+        target_index = target_page_num - 1  # pypdf pages are 0-indexed
+        link = Link(rect=rect, target_page_index=target_index)  # placeholder dest
+        added_annot = writer.add_annotation(page_number=toc_page_index, annotation=link)
+        added_annot[NameObject("/Dest")] = ArrayObject([
+            writer.pages[target_index].indirect_reference,
+            NameObject("/Fit"),
+        ])
 
     with open(output_path, "wb") as f:
         writer.write(f)
@@ -318,7 +328,7 @@ def merge_with_toc(ordered_problems, exercise_title, output_path):
 def scrape_problem_list(driver):
     """
     Scrapes the currently loaded exercise list page.
-    Returns (exercise_title, [(letter, problem_url, problem_title), ...])
+    Returns (exercise_title, [(problem_url, problem_title), ...])
 
     exercise_title is used as-is (not split into category/number), since
     some exercises share a category+number but differ by suffix, e.g.
@@ -341,12 +351,14 @@ def scrape_problem_list(driver):
     # Strip a trailing "5/8 solved" (or similar "X/Y solved") if present.
     page_title = re.sub(r'\s*\d+/\d+\s*solved\s*$', '', page_title,
                          flags=re.IGNORECASE).strip()
-    
-    # Uncomment this and comment the other one to strip 
-    # the leading bracketed course code, e.g. "[CS 11 25.1] ".
-    # exercise_title = re.sub(r'^\[.*?\]\s*', '', page_title).strip()
     exercise_title = page_title
 
+    # --- Find all problem links ---
+    # Each problem link lives inside <td class="problem"><a>...</a></td>,
+    # so we target that directly -- reliable regardless of whether the
+    # problem has a number+letter code (e.g. "Lab 1a - Full Names") or
+    # just a plain name (e.g. "Case-Insensitive"), and naturally preserves
+    # top-to-bottom row order without needing to sort.
     links = driver.find_elements("css selector", "td.problem a")
 
     problems = []
@@ -360,7 +372,7 @@ def scrape_problem_list(driver):
             continue
         seen_urls.add(href)
         problems.append((href, text))
- 
+
     return exercise_title, problems
 
 
@@ -402,7 +414,7 @@ def main():
         print("KEEP_INDIVIDUAL_PDFS is False -- problems will be merged "
               "directly from memory; no individual PDFs will be saved.\n")
 
-    ordered_problems = []  # (display_name, filepath-or-bytes), in a/b/c order
+    ordered_problems = []  # (display_name, filepath-or-bytes), in table row order
 
     for url, raw_title in problems:
         display_name = extract_display_name(raw_title)
