@@ -4,12 +4,6 @@ You probably already know what this does so like, I'll just give the details.
 
 This uses Selenium!
 
-| Category         | Naming pattern         |
-|-------------------|------------------------|
-| `Practice N`      | `Na, Nb, Nc, ...`      |
-| `Lab Exercise N`   | `lNa, lNb, lNc, ...`   |
-| `Mock HOPE N`      | `mhNa, mhNb, mhNc, ...`|
-
 These can be edited / more can be added
 
 ## To Run
