@@ -21,4 +21,4 @@ py archiver.py
 
 After running, it'll open a Chrome window and from there you manually log in, click into the exercise you want to archive, then press `Enter` in the terminal.
 
-Files will be saved in a directory called `OJ Archiver`, which you can change of course!
+Files will be saved in a directory called `OJ Archive`, which you can change of course!
