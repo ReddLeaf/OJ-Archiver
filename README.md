@@ -4,8 +4,6 @@ You probably already know what this does so like, I'll just give the details.
 
 This uses Selenium!
 
-These can be edited / more can be added
-
 ## To Run
 ```bash
 uv sync
