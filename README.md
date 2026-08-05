@@ -1,6 +1,8 @@
 # 🍊 OJ Archiver 🍊
 
-You probably already know what this does so like, I'll just give the details.
+Archives each problem of an OJ exercise into a single PDF with an interactive TOC.
+
+You can choose to either only save the final PDF, or also save each individual problem as its own PDF.
 
 This uses Selenium!
 
