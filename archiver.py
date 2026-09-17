@@ -77,7 +77,9 @@ PDF_SCALE = 0.9
 HIDE_SELECTORS = [
     "#navigation",
     "#contest-info",
-    "footer"
+    "footer",
+    ".clarifications-area",
+    ".button.clarify"
 ]
 
 # --- Table of contents layout settings ---
