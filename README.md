@@ -10,10 +10,10 @@ This uses Selenium!
 ```bash
 uv sync
 .venv/Scripts/activate.ps1 # or source .venv/bin/activate
-py archiver.py
+python archiver.py # or python archiver_ff.py if using Firefox
 ```
 
-After running, it'll open a Chrome window and from there you manually log in, click into the exercise you want to archive, then press `Enter` in the terminal.
+After running, it'll open a Chrome/Firefox window and from there you manually log in, click into the exercise you want to archive, then press `Enter` in the terminal.
 
 Files will be saved in a directory called `OJ Archive`.
 
