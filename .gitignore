@@ -9,8 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
-# Chrome Profile
+# Profiles
 .oj_chrome_profile
+.oj_firefox_profile
 
 # Local Archive
 OJ Archive
